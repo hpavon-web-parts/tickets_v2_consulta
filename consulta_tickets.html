@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de Tickets V2 - DGCOCAP</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #121417; color: #f1f3f5; display: flex; justify-content: center; padding: 40px; }
+    .card { background: #1e2229; padding: 28px; border-radius: 12px; width: 100%; max-width: 440px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    h2 { margin-top: 0; color: #ffca28; font-size: 1.3rem; }
+    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #343a40; box-sizing: border-box; font-size: 1rem; }
+    input { background: #121417; color: #fff; }
+    button { background: #ffca28; color: #121417; font-weight: bold; border: none; cursor: pointer; }
+    button:hover { background: #ffd54f; }
+    #resultado { margin-top: 20px; padding: 15px; border-radius: 8px; background: #16191f; display: none; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Consulta Estado de Ticket - DGCOCAP</h2>
+    <input type="text" id="ticket_id" placeholder="N° de Ticket (ej: TCK-001)">
+    <input type="email" id="correo" placeholder="Tu correo @buenosaires.gob.ar">
+    <button onclick="consultar()">Consultar en Tiempo Real</button>
+    <div id="resultado"></div>
+  </div>
+
+  <script>
+    const FLOW_URL = "https://default2377472e800446488456bd9687afa1.50.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/06/workflows/45c28c5a5ad1448383338f58e8988521/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MIgNCliGqp4kGBadu8Z0M0YkdaFhvxJ6gXjvrl-D99I";
+
+    async function consultar() {
+      const ticket_id = document.getElementById("ticket_id").value.trim();
+      const correo = document.getElementById("correo").value.trim();
+      const resDiv = document.getElementById("resultado");
+      if (!ticket_id) return alert("Ingresá el N° de Ticket");
+
+      resDiv.style.display = "block";
+      resDiv.innerHTML = "Consultando...";
+
+      try {
+        const resp = await fetch(FLOW_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticket_id, correo })
+        });
+        const data = await resp.json();
+        resDiv.innerHTML = data.ticket
+          ? `<strong>Ticket:</strong> ${data.ticket}<br><strong>Estado:</strong> ${data.estado || "Sin estado"}<br><strong>Observaciones:</strong> ${data.observaciones || "-"}`
+          : "No se encontró ningún ticket con ese número.";
+      } catch (e) {
+        resDiv.innerHTML = "Error al conectar con el flujo: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
